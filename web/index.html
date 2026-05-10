@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="HN Reader — A premium Hacker News client built with Flutter.">
+  <title>HN Reader — Flutter App</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --hn: #FF6600;
+      --hn-dark: #E05500;
+      --bg: #0D0D0C;
+      --surface: #161614;
+      --surface2: #1E1E1B;
+      --border: rgba(255,255,255,0.07);
+      --text: #F0EDE6;
+      --muted: #7A786E;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #landing-page {
+      display: block;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #flutter_container {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,13,12,0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+
+    .hn-mark {
+      width: 32px; height: 32px;
+      background: var(--hn);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500; font-size: 14px;
+      color: white; letter-spacing: -1px;
+    }
+
+    .nav-wordmark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px; color: var(--text); letter-spacing: -0.3px;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+
+    .badge {
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      color: var(--hn); border: 1px solid rgba(255,102,0,0.3);
+      border-radius: 20px; padding: 4px 12px; letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--hn); color: white; border: none;
+      padding: 10px 22px; border-radius: 8px;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { background: var(--hn-dark); transform: translateY(-1px); }
+
+    /* HERO */
+    .hero {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; min-height: calc(100vh - 73px); align-items: stretch;
+    }
+
+    .hero-left {
+      padding: 80px 60px 80px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      color: var(--hn); letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 28px; display: flex; align-items: center; gap: 8px;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 24px; height: 1px; background: var(--hn);
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 68px; line-height: 1.0;
+      letter-spacing: -2px; color: var(--text); margin-bottom: 12px;
+    }
+    h1 em { font-style: italic; color: var(--hn); }
+
+    .hero-sub {
+      font-size: 17px; color: var(--muted); line-height: 1.65;
+      max-width: 400px; margin-bottom: 48px; margin-top: 20px;
+    }
+
+    .hero-ctas { display: flex; align-items: center; gap: 16px; margin-bottom: 60px; }
+
+    /* PHONE SIDE */
+    .hero-right {
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px 40px; position: relative; overflow: hidden;
+    }
+
+    .phone-wrap { 
+      position: relative; z-index: 1; 
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .phone {
+      width: 240px; border-radius: 32px;
+      background: #0A0A09;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+      position: relative;
+    }
+
+    .phone-notch { height: 28px; background: #0A0A09; display: flex; align-items: center; justify-content: center; }
+    .notch-pill { width: 80px; height: 10px; background: #1a1a18; border-radius: 10px; }
+
+    .phone-header { background: var(--hn); padding: 10px 14px 8px; position: relative; z-index: 2; }
+    .phone-title { font-family: 'DM Serif Display', serif; font-size: 15px; color: white; margin-bottom: 6px; }
+    
+    .phone-body { 
+      background: #F5F4F0; 
+      height: 300px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .story-feed {
+      animation: scrollUp 15s linear infinite;
+    }
+
+    @keyframes scrollUp {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+
+    .story-item {
+      padding: 10px 12px; border-bottom: 1px solid rgba(0,0,0,0.08);
+      background: #F5F4F0;
+    }
+    .story-title  { font-size: 11.5px; color: #1a1a18; line-height: 1.35; font-weight: 500; margin-bottom: 4px; }
+    .story-meta   { font-size: 9px; color: #999; margin-top: 2px; }
+
+    /* GLOW */
+    .hero-right::after {
+      content: ''; position: absolute;
+      bottom: -100px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse at center, rgba(255,102,0,0.15) 0%, transparent 70%);
+      filter: blur(40px);
+      z-index: 0;
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+      100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      h1 { font-size: 48px; }
+      .hero-left { padding: 60px 24px; }
+      nav { padding: 16px 24px; }
+    }
+
+    /* LOADING OVERLAY */
+    #loading-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: var(--bg);
+      display: none;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(255,102,0,0.1);
+      border-top: 3px solid var(--hn);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p style="margin-top: 20px; color: var(--muted); font-family: 'DM Mono', monospace;">Initializing HN Reader...</p>
+</div>
+
+<div id="landing-page">
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      <div class="hn-mark">Y</div>
+      <span class="nav-wordmark">HN Reader</span>
+    </div>
+    <div class="nav-right">
+      <span class="badge">Flutter · Android &amp; Web</span>
+      <button class="btn-primary" onclick="launchApp()">Launch Web App</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Hacker News · Premium Client</p>
+      <h1>Read<br>what<br><em>matters.</em></h1>
+      <p class="hero-sub">A clean, fast Hacker News reader built with Flutter. Top stories, nested comments, and real-time data — straight from the official HN API.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="launchApp()" style="font-size:15px;padding:13px 28px;">Open Web Reader</button>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-notch"><div class="notch-pill"></div></div>
+          <div class="phone-header">
+            <div class="phone-title">Hacker News</div>
+          </div>
+          <div class="phone-body">
+            <div class="story-feed">
+              <div class="story-item">
+                <div class="story-title">▲ Flutter 3.x — Now GA</div>
+                <div class="story-meta">847 pts · thosakwe · 3h</div>
+              </div>
+              <div class="story-item">
+                <div class="story-title">▲ SQLite is still the answer</div>
+                <div class="story-meta">1203 pts · drh · 12h</div>
+              </div>
+              <div class="story-item">
+                <div class="story-title">▲ RSS in 2026</div>
+                <div class="story-meta">312 pts · tmcw · 8h</div>
+              </div>
+              <div class="story-item">
+                <div class="story-title">▲ Show HN: Dart HN API</div>
+                <div class="story-meta">89 pts · codercup · 1h</div>
+              </div>
+              <!-- Duplicate for seamless loop -->
+              <div class="story-item">
+                <div class="story-title">▲ Flutter 3.x — Now GA</div>
+                <div class="story-meta">847 pts · thosakwe · 3h</div>
+              </div>
+              <div class="story-item">
+                <div class="story-title">▲ SQLite is still the answer</div>
+                <div class="story-meta">1203 pts · drh · 12h</div>
+              </div>
+              <div class="story-item">
+                <div class="story-title">▲ RSS in 2026</div>
+                <div class="story-meta">312 pts · tmcw · 8h</div>
+              </div>
+              <div class="story-item">
+                <div class="story-title">▲ Show HN: Dart HN API</div>
+                <div class="story-meta">89 pts · codercup · 1h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="flutter_container"></div>
+
+<script>
+  let isAppRunning = false;
+  let isEngineInitialized = false;
+  let engineInitializer = null;
+
+  // Pre-load Flutter in the background
+  window.addEventListener('load', function() {
+    if (window._flutter && window._flutter.loader) {
+      window._flutter.loader.load({
+        onEntrypointLoaded: function(ei) {
+          engineInitializer = ei;
+          console.log("Flutter engine ready for launch.");
+        }
+      });
+    }
+  });
+
+  function showLandingPage() {
+    isAppRunning = false;
+    document.getElementById('flutter_container').style.display = 'none';
+    document.getElementById('loading-overlay').style.display = 'none';
+    const landing = document.getElementById('landing-page');
+    landing.style.display = 'block';
+    setTimeout(() => landing.style.opacity = '1', 50);
+  }
+
+  function launchApp() {
+    if (isAppRunning) return;
+
+    const landing = document.getElementById('landing-page');
+    const loader = document.getElementById('loading-overlay');
+    const container = document.getElementById('flutter_container');
+
+    landing.style.opacity = '0';
+    
+    setTimeout(() => {
+      landing.style.display = 'none';
+      
+      if (isEngineInitialized) {
+        // App is already running, just show the container
+        container.style.display = 'block';
+        isAppRunning = true;
+        if (window.location.hash !== '#app') {
+          window.history.pushState({page: 'app'}, "HN Reader App", "#app");
+        }
+      } else {
+        // First time initialization
+        loader.style.display = 'flex';
+        
+        const startEngine = (ei) => {
+          ei.initializeEngine({
+            hostElement: container
+          }).then(function(appRunner) {
+            return appRunner.runApp();
+          }).then(function() {
+            loader.style.display = 'none';
+            container.style.display = 'block';
+            isAppRunning = true;
+            isEngineInitialized = true;
+            window.history.pushState({page: 'app'}, "HN Reader App", "#app");
+          }).catch(err => {
+            console.error("Flutter launch failed:", err);
+            // Fallback: show landing page again so they can retry
+            showLandingPage();
+            alert("Failed to launch reader. Please try again.");
+          });
+        };
+
+        if (engineInitializer) {
+          startEngine(engineInitializer);
+        } else {
+          const checkEi = setInterval(() => {
+            if (engineInitializer) {
+              clearInterval(checkEi);
+              startEngine(engineInitializer);
+            }
+          }, 100);
+          // Timeout after 10 seconds of waiting for engine
+          setTimeout(() => {
+            if (!isEngineInitialized && !engineInitializer) {
+              clearInterval(checkEi);
+              loader.style.display = 'none';
+              landing.style.display = 'block';
+              landing.style.opacity = '1';
+              alert("Loading taking longer than expected. Please refresh.");
+            }
+          }, 10000);
+        }
+      }
+    }, 500);
+  }
+
+  // Handle back button and app state
+  window.onpopstate = function(event) {
+    if (isAppRunning) {
+      showLandingPage();
+    }
+  };
+
+  // If page loads with #app, try to launch
+  if (window.location.hash === '#app') {
+    window.location.hash = ''; // Reset to landing for safety
+  }
+</script>
+
+<script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
