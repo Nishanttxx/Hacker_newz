@@ -227,7 +227,7 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 <div align="center">
 
-Built with ❤️ and ☕ by **[Your Name](https://github.com/yourusername)**
+Built with ❤️ and ☕ by **[Nishant](https://github.com/yourusername)**
 
 *If this helped you, a ⭐ on the repo would mean the world!*
 
